@@ -41,6 +41,7 @@ def load_config():
         print "Edit config at config.json"
         sys.exit()
 
+# umad bro. i used self as a global func var. LOL HEMAD.
 def command_help(self, var):
     if self.isMaster:
         print MASTER_COMMANDS
@@ -48,8 +49,10 @@ def command_help(self, var):
         print GEN_COMMANDS
 
 def command_play(self, var):
-    if not self.isMaster: return
     print "Starting Playback"
+    if not self.isMaster:
+        self.c.play()
+        return
     self.sendFrame()
     self.c.play()
     self.send({
@@ -57,8 +60,10 @@ def command_play(self, var):
     })
 
 def command_pause(self, var):
-    if not self.isMaster: return
     print "Pausing Playback"
+    if not self.isMaster:
+        self.c.pause()
+        return
     self.sendFrame()
     self.c.pause()
     self.send({
@@ -86,8 +91,10 @@ def command_status(self, var):
     Room:    %s
     Members: %s
     Playing: %s
+    Pos: %s
     """ % (
-        self.room, self.getRoomSize(self.room), bool(self.getVar("is_playing")))
+        self.room, self.getRoomSize(self.room), bool(self.getVar("is_playing")),
+        self.getVar("get_time"))
 
 def command_load(self, var):
     if not len(var):
@@ -170,7 +177,7 @@ class Sync(object):
 
     def handleUpdate(self, data):
         # If the time is different, seek to the right spot
-        if abs(self.getVar("get_time") - data['pos']) > 1:
+        if abs(self.getVar("get_time") - data['pos']):
             print "There is an offset in times, adjusting our playback"
             self.c.seek(data['pos'])
 
@@ -211,6 +218,7 @@ class Sync(object):
                         self.handleUpdate(data)
 
     def run(self):
+        # Thread all the things
         thread.start_new_thread(self.redisLoop, ())
 
         while True:
